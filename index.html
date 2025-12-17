@@ -86,8 +86,13 @@ function prepare(){
   questions = shuffle([...questionBank])
     .slice(0, TOTAL_QUESTIONS)
     .map(q => {
-      // q.a có thể 3 hoặc 4 đáp án
-      let opts = q.a.map((t,i)=>({t,i}));
+
+      // 🔑 LỌC ĐÁP ÁN RỖNG
+      let answers = q.a.filter(
+        x => x !== null && x !== undefined && x.toString().trim() !== ""
+      );
+
+      let opts = answers.map((t,i)=>({t,i}));
       opts = shuffle(opts);
 
       return {
