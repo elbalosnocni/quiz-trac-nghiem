@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Quiz trắc nghiệm</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+.quiz-box {
+    max-width: 600px;
+    background: #fff;
+    margin: 40px auto;
+    padding: 20px;
+    border-radius: 8px;
+}
+h2 {
+    margin-bottom: 10px;
+}
+button {
+    margin-top: 15px;
+    padding: 10px 15px;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+button:hover {
+    background: #0056b3;
+}
+.result {
+    font-weight: bold;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-box">
+    <h2 id="question"></h2>
+    <form id="answers"></form>
+    <button onclick="nextQuestion()">Câu tiếp theo</button>
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+const quiz = [
+    {
+        question: "1. HTML là viết tắt của?",
+        answers: [
+            "HyperText Markup Language",
+            "HighText Machine Language",
+            "Hyperlinks Text Mark Language"
+        ],
+        correct: 0
+    },
+    {
+        question: "2. CSS dùng để làm gì?",
+        answers: [
+            "Tạo nội dung",
+            "Trang trí giao diện",
+            "Xử lý dữ liệu"
+        ],
+        correct: 1
+    },
+    {
+        question: "3. JavaScript chạy ở đâu?",
+        answers: [
+            "Trình duyệt",
+            "Excel",
+            "Photoshop"
+        ],
+        correct: 0
+    }
+];
+
+let current = 0;
+let score = 0;
+
+function loadQuestion() {
+    document.getElementById("question").innerText = quiz[current].question;
+    const answers = document.getElementById("answers");
+    answers.innerHTML = "";
+
+    quiz[current].answers.forEach((ans, i) => {
+        answers.innerHTML += `
+            <label>
+                <input type="radio" name="answer" value="${i}"> ${ans}
+            </label><br>
+        `;
+    });
+}
+
+function nextQuestion() {
+    const selected = document.querySelector('input[name="answer"]:checked');
+    if (!selected) {
+        alert("Vui lòng chọn đáp án!");
+        return;
+    }
+
+    if (parseInt(selected.value) === quiz[current].correct) {
+        score++;
+    }
+
+    current++;
+
+    if (current < quiz.length) {
+        loadQuestion();
+    } else {
+        document.querySelector(".quiz-box").innerHTML = `
+            <h2>Hoàn thành quiz 🎉</h2>
+            <p>Bạn trả lời đúng ${score}/${quiz.length} câu</p>
+        `;
+    }
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
