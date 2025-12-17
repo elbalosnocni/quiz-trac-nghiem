@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>BÀI THI NỘI BỘ</title>
+<title>BÀI THI ĐÀO TẠO NỘI BỘ</title>
 <style>
 body{font-family:Arial;background:#eef2f6}
 .box{max-width:720px;margin:40px auto;background:#fff;padding:25px;border-radius:10px}
@@ -18,7 +18,7 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 
 <div class="header">
   <img src="logo.png" height="70">
-  <h2>BÀI THI NỘI BỘ</h2>
+  <h2>BÀI THI ĐÀO TẠO NỘI BỘ</h2>
 </div>
 
 <div class="box" id="start">
@@ -83,11 +83,19 @@ async function start(){
 }
 
 function prepare(){
- questions=shuffle(questionBank).slice(0,TOTAL_QUESTIONS).map(q=>{
-  let opts=q.a.map((t,i)=>({t,i}));
-  opts=shuffle(opts);
-  return {q:q.q,opts,correct:opts.findIndex(o=>o.i===q.c)};
- });
+  questions = shuffle([...questionBank])
+    .slice(0, TOTAL_QUESTIONS)
+    .map(q => {
+      // q.a có thể 3 hoặc 4 đáp án
+      let opts = q.a.map((t,i)=>({t,i}));
+      opts = shuffle(opts);
+
+      return {
+        q: q.q,
+        opts,
+        correct: opts.findIndex(o => o.i === q.c)
+      };
+    });
 }
 
 function tick(){
@@ -98,12 +106,18 @@ function tick(){
 }
 
 function load(){
- bar.style.width=(index/questions.length*100)+"%";
- qEl.innerText="Câu "+(index+1)+": "+questions[index].q;
- aEl.innerHTML="";
- questions[index].opts.forEach((o,i)=>{
-  aEl.innerHTML+=`<label><input type=radio name=ans value=${i}> ${o.t}</label><br>`;
- });
+  bar.style.width = (index/questions.length*100) + "%";
+  q.innerText = `Câu ${index+1}: ${questions[index].q}`;
+  a.innerHTML = "";
+
+  questions[index].opts.forEach((o,i)=>{
+    a.innerHTML += `
+      <label style="display:block;margin:6px 0">
+        <input type="radio" name="ans" value="${i}">
+        ${String.fromCharCode(65+i)}. ${o.t}
+      </label>
+    `;
+  });
 }
 
 function next(){
