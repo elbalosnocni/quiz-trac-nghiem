@@ -111,15 +111,28 @@ function tick(){
 }
 
 function load(){
-  bar.style.width = (index/questions.length*100) + "%";
-  q.innerText = `Câu ${index+1}: ${questions[index].q}`;
+  bar.style.width = (index / questions.length * 100) + "%";
+  q.innerText = `Câu ${index + 1}: ${questions[index].q}`;
   a.innerHTML = "";
 
-  questions[index].opts.forEach((o,i)=>{
+  questions[index].opts.forEach((o, i) => {
     a.innerHTML += `
-      <label style="display:block;margin:6px 0">
-        <input type="radio" name="ans" value="${i}">
-        ${String.fromCharCode(65+i)}. ${o.t}
+      <label style="
+        display:flex;
+        align-items:flex-start;
+        gap:8px;
+        margin:8px 0;
+        cursor:pointer;
+      ">
+        <input 
+          type="radio" 
+          name="ans" 
+          value="${i}" 
+          style="margin-top:3px"
+        >
+        <span>
+          <b>${String.fromCharCode(65 + i)}.</b> ${o.t}
+        </span>
       </label>
     `;
   });
