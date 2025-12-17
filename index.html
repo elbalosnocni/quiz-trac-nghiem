@@ -12,6 +12,17 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 .bar{background:#0a58ca;height:100%;width:0%}
 .timer{text-align:right;font-weight:bold}
 .header{text-align:center;margin-bottom:10px}
+.answer{
+  display:flex;
+  align-items:center;
+  gap:4px;          /* khoảng cách RẤT NHỎ */
+  margin:6px 0;
+  cursor:pointer;
+}
+
+.answer input{
+  margin:0 4px 0 0; /* bỏ khoảng trắng thừa của radio */
+}
 </style>
 </head>
 <body>
@@ -115,24 +126,11 @@ function load(){
   q.innerText = `Câu ${index + 1}: ${questions[index].q}`;
   a.innerHTML = "";
 
-  questions[index].opts.forEach((o, i) => {
+  questions[index].opts.forEach((o,i)=>{
     a.innerHTML += `
-      <label style="
-        display:flex;
-        align-items:flex-start;
-        gap:8px;
-        margin:8px 0;
-        cursor:pointer;
-      ">
-        <input 
-          type="radio" 
-          name="ans" 
-          value="${i}" 
-          style="margin-top:3px"
-        >
-        <span>
-          <b>${String.fromCharCode(65 + i)}.</b> ${o.t}
-        </span>
+      <label class="answer">
+        <input type="radio" name="ans" value="${i}">
+        <b>${String.fromCharCode(65+i)}.</b> ${o.t}
       </label>
     `;
   });
