@@ -1,81 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>BÀI THI NỘI BỘ</title>
+<style>
+body{font-family:Arial;background:#eef2f6}
+.box{max-width:720px;margin:40px auto;background:#fff;padding:25px;border-radius:10px}
+input{width:100%;padding:10px;margin:8px 0}
+button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5px}
+.progress{background:#ddd;height:8px;border-radius:5px;margin:10px 0}
+.bar{background:#0a58ca;height:100%;width:0%}
+.timer{text-align:right;font-weight:bold}
+.header{text-align:center;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="logo.png" height="70">
+  <h2>BÀI THI NỘI BỘ</h2>
+</div>
+
+<div class="box" id="start">
+<input id="name" placeholder="Họ tên">
+<input id="code" placeholder="Mã nhân viên">
+<button onclick="start()">Bắt đầu thi</button>
+</div>
+
+<div class="box" id="quiz" style="display:none">
+<div class="timer" id="timer"></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<h3 id="q"></h3>
+<div id="a"></div>
+<button onclick="next()">Câu tiếp</button>
+</div>
+
+<div class="box" id="end" style="display:none">
+<h2>KẾT QUẢ</h2>
+<div id="result"></div>
+</div>
+
 <script>
-/* ===== DOM ===== */
-const startBox = document.getElementById("start");
-const quizBox  = document.getElementById("quiz");
-const endBox   = document.getElementById("end");
+const SCRIPT_GET = "PASTE_YOUR_SCRIPT_URL_HERE?callback=onQuestions";
+const SCRIPT_POST = "PASTE_YOUR_SCRIPT_URL_HERE";
 
-const nameEl  = document.getElementById("name");
-const codeEl  = document.getElementById("code");
-const timerEl = document.getElementById("timer");
-const bar     = document.getElementById("bar");
-const qEl     = document.getElementById("q");
-const aEl     = document.getElementById("a");
-const result  = document.getElementById("result");
+const TOTAL_QUESTIONS=20;
+const PASS_SCORE=14;
+const EXAM_TIME=1200;
 
-/* ===== CONFIG ===== */
-const QUESTION_API_URL = "questions.json";
-const TOTAL_QUESTIONS = 20;
-const PASS_SCORE = 14;
-const EXAM_TIME = 1200;
+const startBox=start=document.getElementById("start");
+const quizBox=document.getElementById("quiz");
+const endBox=document.getElementById("end");
+const nameEl=document.getElementById("name");
+const codeEl=document.getElementById("code");
+const timerEl=document.getElementById("timer");
+const bar=document.getElementById("bar");
+const qEl=document.getElementById("q");
+const aEl=document.getElementById("a");
+const result=document.getElementById("result");
 
 let questionBank=[],questions=[],index=0,score=0,time=EXAM_TIME,timer,user={};
 
 function shuffle(a){return a.sort(()=>Math.random()-0.5)}
 
-async function start(){
- const name=nameEl.value.trim();
- const code=codeEl.value.trim();
- if(!name||!code) return alert("Nhập đủ thông tin");
- if(localStorage.getItem("done_"+code)) return alert("Mã NV đã thi");
-
- user={name,code};
-
- const res = await fetch(QUESTION_API_URL);
- questionBank = await res.json();
-
- if(questionBank.length < TOTAL_QUESTIONS)
-   return alert("Chưa đủ câu hỏi");
-
- prepareExam();
- startBox.style.display='none';
- quizBox.style.display='block';
- startTimer();
- load();
-}
-
-function prepareExam(){
- questions = shuffle([...questionBank])
-  .slice(0,TOTAL_QUESTIONS)
-  .map(q=>{
-   let opts=q.a.map((t,i)=>({t,i}));
-   opts=shuffle(opts);
-   return {q:q.q,opts,correct:opts.findIndex(o=>o.i===q.c)};
+function loadQuestions(){
+ return new Promise(resolve=>{
+  window.onQuestions=d=>resolve(d);
+  const s=document.createElement("script");
+  s.src=SCRIPT_GET;
+  document.body.appendChild(s);
  });
 }
 
-function startTimer(){
- timerEl.innerText="⏱️ "+time+"s";
+async function start(){
+ if(!nameEl.value||!codeEl.value) return alert("Nhập đủ thông tin");
+ user={name:nameEl.value,code:codeEl.value};
+ questionBank=await loadQuestions();
+ prepare();
+ startBox.style.display="none";
+ quizBox.style.display="block";
+ tick(); load();
+}
+
+function prepare(){
+ questions=shuffle(questionBank).slice(0,TOTAL_QUESTIONS).map(q=>{
+  let opts=q.a.map((t,i)=>({t,i}));
+  opts=shuffle(opts);
+  return {q:q.q,opts,correct:opts.findIndex(o=>o.i===q.c)};
+ });
+}
+
+function tick(){
  timer=setInterval(()=>{
-  time--;
-  timerEl.innerText="⏱️ "+time+"s";
+  timerEl.innerText="⏱️ "+time--;
   if(time<=0) finish();
  },1000);
 }
 
 function load(){
  bar.style.width=(index/questions.length*100)+"%";
- qEl.innerText=`Câu ${index+1}: ${questions[index].q}`;
+ qEl.innerText="Câu "+(index+1)+": "+questions[index].q;
  aEl.innerHTML="";
  questions[index].opts.forEach((o,i)=>{
-  aEl.innerHTML+=`
-   <label>
-     <input type="radio" name="ans" value="${i}"> ${o.t}
-   </label><br>`;
+  aEl.innerHTML+=`<label><input type=radio name=ans value=${i}> ${o.t}</label><br>`;
  });
 }
 
 function next(){
- const c=document.querySelector('input[name=ans]:checked');
+ const c=document.querySelector("input[name=ans]:checked");
  if(!c) return alert("Chọn đáp án");
  if(+c.value===questions[index].correct) score++;
  index++;
@@ -84,16 +116,14 @@ function next(){
 
 function finish(){
  clearInterval(timer);
- quizBox.style.display='none';
- endBox.style.display='block';
- localStorage.setItem("done_"+user.code,1);
- const pass = score>=PASS_SCORE;
- result.innerHTML=`
- 👤 ${user.name}<br>
- 🆔 ${user.code}<br>
- Điểm: ${score}/${TOTAL_QUESTIONS}<br>
- <b style="color:${pass?'green':'red'}">
- ${pass?'PASS':'FAIL'}
- </b>`;
+ quizBox.style.display="none";
+ endBox.style.display="block";
+ fetch(SCRIPT_POST,{method:"POST",body:JSON.stringify({
+  name:user.name,code:user.code,score,total:TOTAL_QUESTIONS,
+  result:score>=PASS_SCORE?"PASS":"FAIL"
+ })});
+ result.innerHTML=`Điểm: ${score}/${TOTAL_QUESTIONS}`;
 }
 </script>
+</body>
+</html>
