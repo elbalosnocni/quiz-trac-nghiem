@@ -1,22 +1,5 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>BÀI THI NỘI BỘ</title>
-<style>
-body{font-family:Arial;background:#eef2f6}
-.box{max-width:720px;margin:40px auto;background:#fff;padding:25px;border-radius:10px}
-input{width:100%;padding:10px;margin:8px 0}
-button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5px}
-.progress{background:#ddd;height:8px;border-radius:5px;margin:10px 0}
-.bar{background:#0a58ca;height:100%;width:0%}
-.timer{text-align:right;font-weight:bold}
-.header{text-align:center;margin-bottom:10px}
-</style>
-</head>
-<body>
 <script>
-/* === KHAI BÁO ELEMENT – PHẢI ĐẶT TRÊN CÙNG === */
+/* ===== DOM ===== */
 const startBox = document.getElementById("start");
 const quizBox  = document.getElementById("quiz");
 const endBox   = document.getElementById("end");
@@ -25,101 +8,69 @@ const nameEl  = document.getElementById("name");
 const codeEl  = document.getElementById("code");
 const timerEl = document.getElementById("timer");
 const bar     = document.getElementById("bar");
-const q       = document.getElementById("q");
-const a       = document.getElementById("a");
+const qEl     = document.getElementById("q");
+const aEl     = document.getElementById("a");
 const result  = document.getElementById("result");
 
-/* === PHẦN CODE LOGIC ĐỂ PHÍA DƯỚI === */
-
-<div class="header">
-  <img src="logo.png" height="70" alt="Logo công ty">
-  <h2>BÀI THI NỘI BỘ</h2>
-</div>
-
-<div class="box" id="start">
-<input id="name" placeholder="Họ tên">
-<input id="code" placeholder="Mã nhân viên">
-<button onclick="start()">Bắt đầu thi</button>
-</div>
-
-<div class="box" id="quiz" style="display:none">
-<div class="timer" id="timer"></div>
-<div class="progress"><div class="bar" id="bar"></div></div>
-<h3 id="q"></h3>
-<div id="a"></div>
-<button onclick="next()">Câu tiếp</button>
-</div>
-
-<div class="box" id="end" style="display:none">
-<h2>KẾT QUẢ</h2>
-<div id="result"></div>
-</div>
-
-<script>
-const QUESTION_API_URL = "https://script.google.com/macros/s/AKfycbw4kSo1WB6L6oo3xVcyKRoN_5caXXOwXPR2CRHZOsxlUaNkU9I4GM0ab8DiUktA5dyJsQ/exec";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyR54U74irQakIthPWL9ZBQNjlnmCNE8Lmxnw9n_NMF-7yG_gKT5En532ZxKoBHyOE5iA/exec";
-
+/* ===== CONFIG ===== */
+const QUESTION_API_URL = "questions.json";
 const TOTAL_QUESTIONS = 20;
 const PASS_SCORE = 14;
 const EXAM_TIME = 1200;
-
-const EXAM_START = "08:00";
-const EXAM_END   = "23:00";
 
 let questionBank=[],questions=[],index=0,score=0,time=EXAM_TIME,timer,user={};
 
 function shuffle(a){return a.sort(()=>Math.random()-0.5)}
 
-function inTimeRange(){
- const now=new Date();
- const [sh,sm]=EXAM_START.split(':');
- const [eh,em]=EXAM_END.split(':');
- const s=new Date(now); s.setHours(sh,sm,0);
- const e=new Date(now); e.setHours(eh,em,0);
- return now>=s && now<=e;
-}
-
 async function start(){
  const name=nameEl.value.trim();
  const code=codeEl.value.trim();
  if(!name||!code) return alert("Nhập đủ thông tin");
- if(!inTimeRange()) return alert("Chưa tới giờ thi");
  if(localStorage.getItem("done_"+code)) return alert("Mã NV đã thi");
 
  user={name,code};
 
  const res = await fetch(QUESTION_API_URL);
  questionBank = await res.json();
- if(questionBank.length < TOTAL_QUESTIONS) return alert("Chưa đủ câu hỏi");
+
+ if(questionBank.length < TOTAL_QUESTIONS)
+   return alert("Chưa đủ câu hỏi");
 
  prepareExam();
  startBox.style.display='none';
  quizBox.style.display='block';
- tick(); load();
+ startTimer();
+ load();
 }
 
 function prepareExam(){
- questions = shuffle([...questionBank]).slice(0,TOTAL_QUESTIONS).map(q=>{
+ questions = shuffle([...questionBank])
+  .slice(0,TOTAL_QUESTIONS)
+  .map(q=>{
    let opts=q.a.map((t,i)=>({t,i}));
    opts=shuffle(opts);
    return {q:q.q,opts,correct:opts.findIndex(o=>o.i===q.c)};
  });
 }
 
-function tick(){
+function startTimer(){
  timerEl.innerText="⏱️ "+time+"s";
  timer=setInterval(()=>{
-  time--; timerEl.innerText="⏱️ "+time+"s";
+  time--;
+  timerEl.innerText="⏱️ "+time+"s";
   if(time<=0) finish();
  },1000);
 }
 
 function load(){
  bar.style.width=(index/questions.length*100)+"%";
- q.innerText=`Câu ${index+1}: `+questions[index].q;
- a.innerHTML="";
+ qEl.innerText=`Câu ${index+1}: ${questions[index].q}`;
+ aEl.innerHTML="";
  questions[index].opts.forEach((o,i)=>{
-  a.innerHTML+=`<label><input type=radio name=ans value=${i}> ${o.t}</label><br>`;
+  aEl.innerHTML+=`
+   <label>
+     <input type="radio" name="ans" value="${i}"> ${o.t}
+   </label><br>`;
  });
 }
 
@@ -127,7 +78,8 @@ function next(){
  const c=document.querySelector('input[name=ans]:checked');
  if(!c) return alert("Chọn đáp án");
  if(+c.value===questions[index].correct) score++;
- index++; index<questions.length?load():finish();
+ index++;
+ index<questions.length?load():finish();
 }
 
 function finish(){
@@ -136,18 +88,12 @@ function finish(){
  endBox.style.display='block';
  localStorage.setItem("done_"+user.code,1);
  const pass = score>=PASS_SCORE;
- send(pass);
- result.innerHTML=`👤 ${user.name}<br>🆔 ${user.code}<br>Điểm: ${score}/${TOTAL_QUESTIONS}<br>
- <b style="color:${pass?'green':'red'}">${pass?'PASS':'FAIL'}</b>`;
+ result.innerHTML=`
+ 👤 ${user.name}<br>
+ 🆔 ${user.code}<br>
+ Điểm: ${score}/${TOTAL_QUESTIONS}<br>
+ <b style="color:${pass?'green':'red'}">
+ ${pass?'PASS':'FAIL'}
+ </b>`;
 }
-
-function send(pass){
- fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
-  name:user.name, code:user.code, score, total:TOTAL_QUESTIONS,
-  time:EXAM_TIME-time, result: pass?'PASS':'FAIL'
- })});
-}
-
 </script>
-</body>
-</html>
