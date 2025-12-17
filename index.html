@@ -15,6 +15,21 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 </style>
 </head>
 <body>
+<script>
+/* === KHAI BÁO ELEMENT – PHẢI ĐẶT TRÊN CÙNG === */
+const startBox = document.getElementById("start");
+const quizBox  = document.getElementById("quiz");
+const endBox   = document.getElementById("end");
+
+const nameEl  = document.getElementById("name");
+const codeEl  = document.getElementById("code");
+const timerEl = document.getElementById("timer");
+const bar     = document.getElementById("bar");
+const q       = document.getElementById("q");
+const a       = document.getElementById("a");
+const result  = document.getElementById("result");
+
+/* === PHẦN CODE LOGIC ĐỂ PHÍA DƯỚI === */
 
 <div class="header">
   <img src="logo.png" height="70" alt="Logo công ty">
@@ -132,18 +147,6 @@ function send(pass){
   time:EXAM_TIME-time, result: pass?'PASS':'FAIL'
  })});
 }
-
-const startBox = document.getElementById("start");
-const quizBox  = document.getElementById("quiz");
-const endBox   = document.getElementById("end");
-
-const nameEl  = document.getElementById("name");
-const codeEl  = document.getElementById("code");
-const timerEl = document.getElementById("timer");
-const bar     = document.getElementById("bar");
-const q       = document.getElementById("q");
-const a       = document.getElementById("a");
-const result  = document.getElementById("result");
 
 </script>
 </body>
