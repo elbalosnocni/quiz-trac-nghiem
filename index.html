@@ -12,20 +12,79 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 .bar{background:#0a58ca;height:100%;width:0%}
 .timer{text-align:right;font-weight:bold}
 .header{text-align:center;margin-bottom:10px}
+/* Khối câu hỏi */
+#quiz{
+  max-width: 720px;
+  margin: auto;
+}
+
+#q{
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* Danh sách đáp án */
+#a{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:10px;
+}
+
+/* 1 đáp án */
 .answer-item{
   display:flex;
   align-items:flex-start;
-  gap:6px;
-  margin:8px 0;
+  gap:10px;
+  padding:12px;
+  border:1px solid #e0e0e0;
+  border-radius:8px;
+  background:#fafafa;
   cursor:pointer;
+  transition: all .15s ease;
+}
+
+/* Hover & chọn */
+.answer-item:hover{
+  background:#f0f6ff;
 }
 
 .answer-item input{
-  margin-top:4px;   /* canh tròn radio ngang dòng chữ */
+  margin-top:4px;
+  transform: scale(1.1);
+}
+
+.answer-item b{
+  margin-right:4px;
 }
 
 .answer-text{
   line-height:1.4;
+  font-size:15px;
+}
+
+/* Khi chọn */
+.answer-item input:checked + .answer-text{
+  color:#0a58ca;
+  font-weight:600;
+}
+
+/* Nút tiếp */
+#quiz button{
+  margin-top:16px;
+  width:100%;
+  font-size:16px;
+}
+
+/* Mobile */
+@media(max-width:600px){
+  #q{
+    font-size:15px;
+  }
+  .answer-text{
+    font-size:14px;
+  }
 }
 </style>
 </head>
