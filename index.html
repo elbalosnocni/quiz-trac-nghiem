@@ -2,123 +2,139 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Quiz trắc nghiệm</title>
+<title>BÀI THI NỘI BỘ</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-}
-.quiz-box {
-    max-width: 600px;
-    background: #fff;
-    margin: 40px auto;
-    padding: 20px;
-    border-radius: 8px;
-}
-h2 {
-    margin-bottom: 10px;
-}
-button {
-    margin-top: 15px;
-    padding: 10px 15px;
-    border: none;
-    background: #007bff;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-button:hover {
-    background: #0056b3;
-}
-.result {
-    font-weight: bold;
-    margin-top: 20px;
-}
+body{font-family:Arial;background:#eef2f6}
+.box{max-width:720px;margin:40px auto;background:#fff;padding:25px;border-radius:10px}
+input{width:100%;padding:10px;margin:8px 0}
+button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5px}
+.progress{background:#ddd;height:8px;border-radius:5px;margin:10px 0}
+.bar{background:#0a58ca;height:100%;width:0%}
+.timer{text-align:right;font-weight:bold}
+.header{text-align:center;margin-bottom:10px}
 </style>
 </head>
-
 <body>
 
-<div class="quiz-box">
-    <h2 id="question"></h2>
-    <form id="answers"></form>
-    <button onclick="nextQuestion()">Câu tiếp theo</button>
-    <div class="result" id="result"></div>
+<div class="header">
+  <img src="logo.png" height="70" alt="Logo công ty">
+  <h2>BÀI THI NỘI BỘ</h2>
+</div>
+
+<div class="box" id="start">
+<input id="name" placeholder="Họ tên">
+<input id="code" placeholder="Mã nhân viên">
+<button onclick="start()">Bắt đầu thi</button>
+</div>
+
+<div class="box" id="quiz" style="display:none">
+<div class="timer" id="timer"></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<h3 id="q"></h3>
+<div id="a"></div>
+<button onclick="next()">Câu tiếp</button>
+</div>
+
+<div class="box" id="end" style="display:none">
+<h2>KẾT QUẢ</h2>
+<div id="result"></div>
 </div>
 
 <script>
-const quiz = [
-    {
-        question: "1. HTML là viết tắt của?",
-        answers: [
-            "HyperText Markup Language",
-            "HighText Machine Language",
-            "Hyperlinks Text Mark Language"
-        ],
-        correct: 0
-    },
-    {
-        question: "2. CSS dùng để làm gì?",
-        answers: [
-            "Tạo nội dung",
-            "Trang trí giao diện",
-            "Xử lý dữ liệu"
-        ],
-        correct: 1
-    },
-    {
-        question: "3. JavaScript chạy ở đâu?",
-        answers: [
-            "Trình duyệt",
-            "Excel",
-            "Photoshop"
-        ],
-        correct: 0
-    }
-];
+const QUESTION_API_URL = "PASTE_QUESTION_API_URL";
+const SCRIPT_URL = "PASTE_RESULT_SCRIPT_URL";
 
-let current = 0;
-let score = 0;
+const TOTAL_QUESTIONS = 20;
+const PASS_SCORE = 14;
+const EXAM_TIME = 1200;
 
-function loadQuestion() {
-    document.getElementById("question").innerText = quiz[current].question;
-    const answers = document.getElementById("answers");
-    answers.innerHTML = "";
+const EXAM_START = "08:00";
+const EXAM_END   = "09:00";
 
-    quiz[current].answers.forEach((ans, i) => {
-        answers.innerHTML += `
-            <label>
-                <input type="radio" name="answer" value="${i}"> ${ans}
-            </label><br>
-        `;
-    });
+let questionBank=[],questions=[],index=0,score=0,time=EXAM_TIME,timer,user={};
+
+function shuffle(a){return a.sort(()=>Math.random()-0.5)}
+
+function inTimeRange(){
+ const now=new Date();
+ const [sh,sm]=EXAM_START.split(':');
+ const [eh,em]=EXAM_END.split(':');
+ const s=new Date(now); s.setHours(sh,sm,0);
+ const e=new Date(now); e.setHours(eh,em,0);
+ return now>=s && now<=e;
 }
 
-function nextQuestion() {
-    const selected = document.querySelector('input[name="answer"]:checked');
-    if (!selected) {
-        alert("Vui lòng chọn đáp án!");
-        return;
-    }
+async function start(){
+ const name=nameEl.value.trim();
+ const code=codeEl.value.trim();
+ if(!name||!code) return alert("Nhập đủ thông tin");
+ if(!inTimeRange()) return alert("Chưa tới giờ thi");
+ if(localStorage.getItem("done_"+code)) return alert("Mã NV đã thi");
 
-    if (parseInt(selected.value) === quiz[current].correct) {
-        score++;
-    }
+ user={name,code};
 
-    current++;
+ const res = await fetch(QUESTION_API_URL);
+ questionBank = await res.json();
+ if(questionBank.length < TOTAL_QUESTIONS) return alert("Chưa đủ câu hỏi");
 
-    if (current < quiz.length) {
-        loadQuestion();
-    } else {
-        document.querySelector(".quiz-box").innerHTML = `
-            <h2>Hoàn thành quiz 🎉</h2>
-            <p>Bạn trả lời đúng ${score}/${quiz.length} câu</p>
-        `;
-    }
+ prepareExam();
+ startBox.style.display='none';
+ quizBox.style.display='block';
+ tick(); load();
 }
 
-loadQuestion();
+function prepareExam(){
+ questions = shuffle([...questionBank]).slice(0,TOTAL_QUESTIONS).map(q=>{
+   let opts=q.a.map((t,i)=>({t,i}));
+   opts=shuffle(opts);
+   return {q:q.q,opts,correct:opts.findIndex(o=>o.i===q.c)};
+ });
+}
+
+function tick(){
+ timerEl.innerText="⏱️ "+time+"s";
+ timer=setInterval(()=>{
+  time--; timerEl.innerText="⏱️ "+time+"s";
+  if(time<=0) finish();
+ },1000);
+}
+
+function load(){
+ bar.style.width=(index/questions.length*100)+"%";
+ q.innerText=`Câu ${index+1}: `+questions[index].q;
+ a.innerHTML="";
+ questions[index].opts.forEach((o,i)=>{
+  a.innerHTML+=`<label><input type=radio name=ans value=${i}> ${o.t}</label><br>`;
+ });
+}
+
+function next(){
+ const c=document.querySelector('input[name=ans]:checked');
+ if(!c) return alert("Chọn đáp án");
+ if(+c.value===questions[index].correct) score++;
+ index++; index<questions.length?load():finish();
+}
+
+function finish(){
+ clearInterval(timer);
+ quizBox.style.display='none';
+ endBox.style.display='block';
+ localStorage.setItem("done_"+user.code,1);
+ const pass = score>=PASS_SCORE;
+ send(pass);
+ result.innerHTML=`👤 ${user.name}<br>🆔 ${user.code}<br>Điểm: ${score}/${TOTAL_QUESTIONS}<br>
+ <b style="color:${pass?'green':'red'}">${pass?'PASS':'FAIL'}</b>`;
+}
+
+function send(pass){
+ fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
+  name:user.name, code:user.code, score, total:TOTAL_QUESTIONS,
+  time:EXAM_TIME-time, result: pass?'PASS':'FAIL'
+ })});
+}
+
+const startBox=start,quizBox=quiz,endBox=end;
+const nameEl=name,codeEl=code,timerEl=timer,bar=bar,q=q,a=a,result=result;
 </script>
-
 </body>
 </html>
