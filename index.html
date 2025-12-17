@@ -140,6 +140,9 @@ function finish(){
     result: pass ? "PASS" : "FAIL"
   });
 
+  // 🔥 BẮT BUỘC: chống cache
+  params.append("_ts", Date.now());
+
   const img = new Image();
   img.src = SCRIPT_POST + "?" + params.toString();
 }
