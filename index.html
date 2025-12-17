@@ -119,7 +119,9 @@ function finish(){
   quizBox.style.display="none";
   endBox.style.display="block";
 
-  const pass = score >= PASS_SCORE;
+  //Pass = số điểm const pass = score >= PASS_SCORE;
+  //Pass = ≥ 70% số câu
+  const pass = score >= Math.ceil(questions.length * 0.7);
   sendResult(pass);
 
   result.innerHTML = `
