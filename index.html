@@ -12,77 +12,84 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 .bar{background:#0a58ca;height:100%;width:0%}
 .timer{text-align:right;font-weight:bold}
 .header{text-align:center;margin-bottom:10px}
-/* Khối câu hỏi */
-#quiz{
-  max-width: 720px;
-  margin: auto;
-}
-
-#q{
-  font-size: 16px;
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-
-/* Danh sách đáp án */
+/* Khối đáp án */
 #a{
   display:flex;
   flex-direction:column;
-  gap:10px;
-  margin-top:10px;
+  gap:12px;
+  margin-top:12px;
 }
 
-/* 1 đáp án */
-.answer-item{
+/* Card đáp án */
+.option{
   display:flex;
   align-items:flex-start;
-  gap:10px;
-  padding:12px;
-  border:1px solid #e0e0e0;
-  border-radius:8px;
-  background:#fafafa;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  background:#fff;
   cursor:pointer;
-  transition: all .15s ease;
+  transition:.2s;
 }
 
-/* Hover & chọn */
-.answer-item:hover{
-  background:#f0f6ff;
+/* Hover */
+.option:hover{
+  background:#f5f9ff;
+  border-color:#0d6efd;
 }
 
-.answer-item input{
+/* Ẩn radio gốc */
+.option input{
+  display:none;
+}
+
+/* Radio custom */
+.radio{
+  width:18px;
+  height:18px;
+  border:2px solid #999;
+  border-radius:50%;
   margin-top:4px;
-  transform: scale(1.1);
-}
-
-.answer-item b{
-  margin-right:4px;
-}
-
-.answer-text{
-  line-height:1.4;
-  font-size:15px;
+  flex-shrink:0;
+  position:relative;
 }
 
 /* Khi chọn */
-.answer-item input:checked + .answer-text{
-  color:#0a58ca;
+.option input:checked + .radio{
+  border-color:#0d6efd;
+}
+
+.option input:checked + .radio::after{
+  content:"";
+  width:10px;
+  height:10px;
+  background:#0d6efd;
+  border-radius:50%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+}
+
+/* Nội dung */
+.content{
+  font-size:15px;
+  line-height:1.45;
+}
+
+/* Trạng thái chọn */
+.option input:checked ~ .content{
   font-weight:600;
+  color:#0d6efd;
 }
 
-/* Nút tiếp */
-#quiz button{
-  margin-top:16px;
-  width:100%;
-  font-size:16px;
-}
-
-/* Mobile */
+/* Mobile tối ưu */
 @media(max-width:600px){
-  #q{
-    font-size:15px;
+  .option{
+    padding:16px;
   }
-  .answer-text{
+  .content{
     font-size:14px;
   }
 }
@@ -191,9 +198,10 @@ function load(){
 
   questions[index].opts.forEach((o,i)=>{
     a.innerHTML += `
-      <label class="answer-item">
+      <label class="option">
         <input type="radio" name="ans" value="${i}">
-        <span class="answer-text">
+        <span class="radio"></span>
+        <span class="content">
           <b>${String.fromCharCode(65+i)}.</b> ${o.t}
         </span>
       </label>
