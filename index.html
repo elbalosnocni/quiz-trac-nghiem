@@ -2,8 +2,9 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>BÀI THI ĐÀO TẠO NỘI BỘ</title>
+<title>Quiz nội bộ</title>
 <style>
+/* CSS y hệt mẫu trước */
 body{font-family:Arial;background:#eef2f6}
 .box{max-width:720px;margin:40px auto;background:#fff;padding:25px;border-radius:10px}
 input{width:100%;padding:10px;margin:8px 0}
@@ -12,94 +13,21 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 .bar{background:#0a58ca;height:100%;width:0%}
 .timer{text-align:right;font-weight:bold}
 .header{text-align:center;margin-bottom:10px}
-/* Khối đáp án */
-#a{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  margin-top:12px;
-}
-
-/* Card đáp án */
-.option{
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
-  padding:14px 16px;
-  border:1px solid #ddd;
-  border-radius:12px;
-  background:#fff;
-  cursor:pointer;
-  transition:.2s;
-}
-
-/* Hover */
-.option:hover{
-  background:#f5f9ff;
-  border-color:#0d6efd;
-}
-
-/* Ẩn radio gốc */
-.option input{
-  display:none;
-}
-
-/* Radio custom */
-.radio{
-  width:18px;
-  height:18px;
-  border:2px solid #999;
-  border-radius:50%;
-  margin-top:4px;
-  flex-shrink:0;
-  position:relative;
-}
-
-/* Khi chọn */
-.option input:checked + .radio{
-  border-color:#0d6efd;
-}
-
-.option input:checked + .radio::after{
-  content:"";
-  width:10px;
-  height:10px;
-  background:#0d6efd;
-  border-radius:50%;
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-}
-
-/* Nội dung */
-.content{
-  font-size:15px;
-  line-height:1.45;
-}
-
-/* Trạng thái chọn */
-.option input:checked ~ .content{
-  font-weight:600;
-  color:#0d6efd;
-}
-
-/* Mobile tối ưu */
-@media(max-width:600px){
-  .option{
-    padding:16px;
-  }
-  .content{
-    font-size:14px;
-  }
-}
+#a{display:flex;flex-direction:column;gap:12px;margin-top:12px;}
+.option{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid #ddd;border-radius:12px;background:#fff;cursor:pointer;transition:.2s;}
+.option:hover{background:#f5f9ff;border-color:#0d6efd;}
+.option input{display:none;}
+.radio{width:18px;height:18px;border:2px solid #999;border-radius:50%;margin-top:4px;flex-shrink:0;position:relative;}
+.option input:checked + .radio{border-color:#0d6efd;}
+.option input:checked + .radio::after{content:"";width:10px;height:10px;background:#0d6efd;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+.content{font-size:15px;line-height:1.45;}
+.option input:checked ~ .content{font-weight:600;color:#0d6efd;}
+@media(max-width:600px){.option{padding:16px;}.content{font-size:14px;}}
 </style>
 </head>
 <body>
-
 <div class="header">
-  <img src="logo.png" height="70">
-  <h2>BÀI THI ĐÀO TẠO NỘI BỘ</h2>
+  <h2>BÀI THI NỘI BỘ</h2>
 </div>
 
 <div class="box" id="start">
@@ -122,12 +50,11 @@ button{padding:10px 16px;background:#0a58ca;color:#fff;border:0;border-radius:5p
 </div>
 
 <script>
-const SCRIPT_GET = "https://script.google.com/macros/s/AKfycbwjbcZX3uecL6S4vFVv68kImKsaXXgx0FSOclLD-4smrhEFAtEj88es-4Rg6bqJtuHdYQ/exec?callback=onQuestions";
-const SCRIPT_POST = "https://script.google.com/macros/s/AKfycbwjbcZX3uecL6S4vFVv68kImKsaXXgx0FSOclLD-4smrhEFAtEj88es-4Rg6bqJtuHdYQ/exec";
+const SCRIPT_GET="YOUR_WEB_APP_URL?callback=onQuestions";
+const SCRIPT_POST="YOUR_WEB_APP_URL";
 
 const TOTAL_QUESTIONS=3;
-const PASS_SCORE=14;
-const EXAM_TIME=1200;
+const EXAM_TIME=600;
 
 const startBox=document.getElementById("start");
 const quizBox=document.getElementById("quiz");
@@ -157,99 +84,65 @@ async function start(){
  if(!nameEl.value||!codeEl.value) return alert("Nhập đủ thông tin");
  user={name:nameEl.value,code:codeEl.value};
  questionBank=await loadQuestions();
- prepare();
+ questions = shuffle([...questionBank]).slice(0,TOTAL_QUESTIONS);
  startBox.style.display="none";
  quizBox.style.display="block";
  tick(); load();
 }
 
-function prepare(){
-  questions = shuffle([...questionBank])
-    .slice(0, TOTAL_QUESTIONS)
-    .map(q => {
-
-      // 🔑 LỌC ĐÁP ÁN RỖNG
-      let answers = q.a.filter(
-        x => x !== null && x !== undefined && x.toString().trim() !== ""
-      );
-
-      let opts = answers.map((t,i)=>({t,i}));
-      opts = shuffle(opts);
-
-      return {
-        q: q.q,
-        opts,
-        correct: opts.findIndex(o => o.i === q.c)
-      };
-    });
-}
-
-function tick(){
- timer=setInterval(()=>{
-  timerEl.innerText="⏱️ "+time--;
-  if(time<=0) finish();
- },1000);
-}
+function tick(){timer=setInterval(()=>{timerEl.innerText="⏱️ "+time--;if(time<=0) finish();},1000);}
 
 function load(){
-  bar.style.width = (index / questions.length * 100) + "%";
-  q.innerText = `Câu ${index + 1}: ${questions[index].q}`;
-  a.innerHTML = "";
-
-  questions[index].opts.forEach((o,i)=>{
-    a.innerHTML += `
-      <label class="option">
-        <input type="radio" name="ans" value="${i}">
-        <span class="radio"></span>
-        <span class="content">
-          <b>${String.fromCharCode(65+i)}.</b> ${o.t}
-        </span>
-      </label>
-    `;
-  });
+ bar.style.width = (index/questions.length*100)+"%";
+ qEl.innerText=`Câu ${index+1}: ${questions[index].q}`;
+ aEl.innerHTML="";
+ const opts=shuffle(questions[index].a.map((t,i)=>({t,i})));
+ questions[index].correctIndex=questions[index].c;
+ opts.forEach((o,i)=>{
+   aEl.innerHTML+=`<label class="option">
+     <input type="radio" name="ans" value="${i}">
+     <span class="radio"></span>
+     <span class="content"><b>${String.fromCharCode(65+i)}.</b> ${o.t}</span>
+   </label>`;
+ });
+ questions[index].opts=opts;
 }
 
 function next(){
  const c=document.querySelector("input[name=ans]:checked");
  if(!c) return alert("Chọn đáp án");
- if(+c.value===questions[index].correct) score++;
+ const selectedIndex = +c.value;
+ const correctIndex = questions[index].opts.findIndex(o=>o.i===questions[index].correctIndex);
+if(selectedIndex===correctIndex) score++;
  index++;
  index<questions.length?load():finish();
 }
 
 function finish(){
-  clearInterval(timer);
-  quizBox.style.display="none";
-  endBox.style.display="block";
-
-  //Pass = số điểm const pass = score >= PASS_SCORE;
-  //Pass = ≥ 70% số câu
-  const pass = score >= Math.ceil(questions.length * 0.7);
-  sendResult(pass);
-
-  result.innerHTML = `
-    👤 ${user.name}<br>
-    🆔 ${user.code}<br>
-    Điểm: ${score}/${TOTAL_QUESTIONS}<br>
-    <b style="color:${pass?'green':'red'}">
-      ${pass ? 'PASS' : 'FAIL'}
-    </b>
-  `;
+ clearInterval(timer);
+ quizBox.style.display="none";
+ endBox.style.display="block";
+const pass = score>=Math.ceil(questions.length*0.7);
+sendResult(pass);
+result.innerHTML=`👤 ${user.name}<br>🆔 ${user.code}<br>Điểm: ${score}/${questions.length}<br><b style="color:${pass?'green':'red'}">${pass?'PASS':'FAIL'}</b>`;
 }
-  function sendResult(pass){
-  const params = new URLSearchParams({
-    name: user.name,
-    code: user.code,
-    score: score,
-    total: TOTAL_QUESTIONS,
-    result: pass ? "PASS" : "FAIL"
+
+function sendResult(pass){
+ const params=new URLSearchParams({
+   name:user.name,
+   code:user.code,
+   score:score,
+   total:questions.length,
+   result:pass?'PASS':'FAIL',
+   _ts:Date.now()
+ });
+ fetch(SCRIPT_POST+"?"+params.toString())
+  .then(res=>res.json())
+  .then(data=>{
+    if(data.status==="success" && data.certUrl){
+      result.innerHTML+=`<br>📄 <a href="${data.certUrl}" target="_blank">Tải chứng chỉ PDF</a>`;
+    }
   });
-
-  // 🔥 BẮT BUỘC: chống cache
-  params.append("_ts", Date.now());
-
-  const img = new Image();
-  img.src = SCRIPT_POST + "?" + params.toString();
 }
 </script>
 </body>
