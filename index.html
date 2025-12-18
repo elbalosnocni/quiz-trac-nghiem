@@ -94,17 +94,22 @@ function prepare(){
   questions = shuffle([...questionBank])
     .slice(0, TOTAL_QUESTIONS)
     .map(q => {
-      // Lọc đáp án rỗng
-      let answers = q.a.filter(x => x && x.toString().trim() !== "");
-      let opts = shuffle(answers.map((t,i)=>({t,i})));
+
+      // tạo đáp án kèm index gốc
+      let answers = q.a
+        .map((text, idx) => ({ text, idx }))
+        .filter(x => x.text && x.text.toString().trim() !== "");
+
+      // shuffle
+      let opts = shuffle(answers);
+
       return {
         q: q.q,
         opts,
-        correct: opts.findIndex(o => o.i === q.c)
+        correct: opts.findIndex(o => o.idx === q.c) // so index gốc
       };
     });
 }
-
 function tick(){
  timer=setInterval(()=>{
   timerEl.innerText="⏱️ "+time--;
